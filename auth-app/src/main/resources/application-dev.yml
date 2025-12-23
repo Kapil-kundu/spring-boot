@@ -20,11 +20,11 @@ spring:
 #      initialization-fail-timeout: -1
 
 # jpa and hibernate configurations
-jpa:
-  hibernate:
-    ddl-auto: update
-  show-sql: true
-  properties:
+  jpa:
     hibernate:
-      dialect: org.hibernate.dialect.MySQLDialect
-      format-sql: true
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format-sql: true
