@@ -1,19 +1,57 @@
 package com.substring.auth.auth_app.services;
 
 import com.substring.auth.auth_app.dtos.UserDto;
+import com.substring.auth.auth_app.entities.Provider;
+import com.substring.auth.auth_app.entities.User;
+import com.substring.auth.auth_app.exceptions.ResourceNotFoundException;
+import com.substring.auth.auth_app.helpers.UserHelper;
+import com.substring.auth.auth_app.repositories.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.experimental.Helper;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService{
 
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
+
+
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
+
     @Override
+    @Transactional
     public UserDto createUser(UserDto userDto) {
-        return null;
+
+        if(userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        if(userRepository.existsByEmail(userDto.getEmail())) {
+            throw new IllegalArgumentException("User with given Email already exists");
+        }
+        // If we have some extra checks we can put those check here
+
+        User user = modelMapper.map(userDto, User.class);
+        user.setProvider(userDto.getProvider() != null ? userDto.getProvider() : Provider.LOCAL);
+        User savedUser = userRepository.save(user);
+        return modelMapper.map(savedUser, UserDto.class);
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
-        return null;
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(("user not found with given email")));
+
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
@@ -23,16 +61,24 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void deleteUser(String userId) {
-
+       UUID uId =  UserHelper.parseUUID(userId);
+       User user = userRepository.findById(uId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+       userRepository.delete(user);
     }
 
     @Override
     public UserDto getUserById(String userId) {
-        return null;
+        User user = userRepository.findById(UserHelper.parseUUID(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
+    @Transactional
     public Iterable<UserDto> getAllUsers() {
-        return null;
+        return userRepository
+                .findAll()
+                .stream()
+                .map(user -> modelMapper.map(user, UserDto.class))
+                .toList();
     }
 }
