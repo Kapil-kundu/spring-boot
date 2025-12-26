@@ -12,6 +12,7 @@ import lombok.experimental.Helper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -56,19 +57,45 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto updateUser(UserDto userDto, String userId) {
-        return null;
+        UUID uId = UserHelper.parseUUID(userId);
+        User existingUser = userRepository
+                .findById(uId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+        // we are not going to change email id for this project
+        if(userDto.getName() != null) {
+            existingUser.setName(userDto.getName());
+        }
+        if(userDto.getImage() != null) {
+            existingUser.setImage(userDto.getImage());
+        }
+        if(userDto.getProvider() != null) {
+            existingUser.setProvider(userDto.getProvider());
+        }
+        // TODO : change password updation logic here
+        if(userDto.getPassword() != null) {
+            existingUser.setPassword(userDto.getPassword());
+        }
+
+        existingUser.setEnable(userDto.isEnable());
+        existingUser.setUpdatedAt(Instant.now());
+        User updatedUser  =userRepository.save(existingUser);
+
+
+        return modelMapper.map(updatedUser, UserDto.class);
     }
 
     @Override
     public void deleteUser(String userId) {
        UUID uId =  UserHelper.parseUUID(userId);
-       User user = userRepository.findById(uId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+       User user = userRepository
+               .findById(uId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
        userRepository.delete(user);
     }
 
     @Override
     public UserDto getUserById(String userId) {
-        User user = userRepository.findById(UserHelper.parseUUID(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+        User user = userRepository
+                .findById(UserHelper.parseUUID(userId)).
+                orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         return modelMapper.map(user, UserDto.class);
     }
 
