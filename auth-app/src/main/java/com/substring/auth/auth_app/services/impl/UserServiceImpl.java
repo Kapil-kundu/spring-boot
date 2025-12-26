@@ -1,4 +1,4 @@
-package com.substring.auth.auth_app.services;
+package com.substring.auth.auth_app.services.impl;
 
 import com.substring.auth.auth_app.dtos.UserDto;
 import com.substring.auth.auth_app.entities.Provider;
@@ -6,9 +6,8 @@ import com.substring.auth.auth_app.entities.User;
 import com.substring.auth.auth_app.exceptions.ResourceNotFoundException;
 import com.substring.auth.auth_app.helpers.UserHelper;
 import com.substring.auth.auth_app.repositories.UserRepository;
+import com.substring.auth.auth_app.services.UserService;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import lombok.experimental.Helper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
