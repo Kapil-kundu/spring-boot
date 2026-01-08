@@ -1,10 +1,14 @@
 package com.substring.auth.auth_app.config;
+import com.substring.auth.auth_app.dtos.ApiError;
 import com.substring.auth.auth_app.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -41,10 +45,17 @@ public class SecurityConfig {
                  e.printStackTrace();
                  response.setStatus(401);
                  response.setContentType("application/json");
-                 String message = " Unauthorized access!" + e.getMessage();
-                Map<String, String> errorMap = Map.of("message", message, "statusCode", Integer.toString(401));
+                 String message =  e.getMessage();
+
+                 String error1 = (String) request.getAttribute("error");
+                 if(error1 != null) {
+                     message = error1;
+                 }
+
+               // Map<String, Object> errorMap = Map.of("message", message, "statusCode", Integer.toString(401));
+                var apiError = ApiError.of(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access !!", message, request.getRequestURI());
                 var objectMapper = new ObjectMapper();
-                response.getWriter().write(objectMapper.writeValueAsString(errorMap));
+                response.getWriter().write(objectMapper.writeValueAsString(apiError));
             }))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -54,6 +65,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+        return configuration.getAuthenticationManager();
     }
 //    @Bean
 //     public UserDetailsService users() {
