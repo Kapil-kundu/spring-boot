@@ -68,7 +68,7 @@ public class JwtService {
     }
 
     //generate refresh token
-    public String generateAccessToken(User user, String jti) {
+    public String generateRefreshToken(User user, String jti) {
         Instant now = Instant.now();
         List<String> roles = user.getRoles() == null ? List.of() :
                 user.getRoles().stream().map(Role::getName).toList();

@@ -3,7 +3,9 @@ package com.substring.auth.auth_app.controllers;
 import com.substring.auth.auth_app.dtos.LoginRequest;
 import com.substring.auth.auth_app.dtos.TokenResponse;
 import com.substring.auth.auth_app.dtos.UserDto;
+import com.substring.auth.auth_app.entities.RefreshToken;
 import com.substring.auth.auth_app.entities.User;
+import com.substring.auth.auth_app.repositories.RefreshTokenRepository;
 import com.substring.auth.auth_app.repositories.UserRepository;
 import com.substring.auth.auth_app.security.JwtService;
 import com.substring.auth.auth_app.services.AuthService;
@@ -22,12 +24,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @AllArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenRepository refreshTokenRepository;
+
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtService jwtService;
@@ -40,14 +47,28 @@ public class AuthController {
 
         // authenticating the person
         Authentication authenticate = authenticate(loginRequest);
-        User user =  userRepository.findByEmail(loginRequest.email()).orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+        User user =  userRepository.findByEmail(loginRequest.email())
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
         if(!user.isEnabled()) {
             throw  new DisabledException("User is disabled");
         }
 
-        // generate token
+        String jti = UUID.randomUUID().toString();
+        var refreshTokenOb = RefreshToken.builder()
+                .jti(jti)
+                .user(user)
+                .createdAt(Instant.now())
+                .expiredAt(Instant.now().plusSeconds(jwtService.getRefreshTtlSeconds()))
+                .revoked(false)
+                .build();
+
+        //refresh token information saved
+        refreshTokenRepository.save(refreshTokenOb);
+
+        // access token --> generate token
         String accessToken =  jwtService.generateAccessToken(user);
-        TokenResponse tokenResponse = TokenResponse.of(accessToken, "", jwtService.getAccessTtlSeconds(),"Bearer", mapper.map(user, UserDto.class));
+        String refreshToken = jwtService.generateRefreshToken(user, refreshTokenOb.getJti());
+        TokenResponse tokenResponse = TokenResponse.of(accessToken, refreshToken, jwtService.getAccessTtlSeconds(),"Bearer", mapper.map(user, UserDto.class));
         return ResponseEntity.ok(tokenResponse);
     }
 
