@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.View;
 import tools.jackson.databind.ObjectMapper;
@@ -26,8 +27,14 @@ import java.util.Map;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private AuthenticationSuccessHandler successHandler;
+
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthenticationSuccessHandler successHandler) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.successHandler = successHandler;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, View error) throws Exception {
@@ -42,6 +49,11 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/auth/logout").permitAll()
                             .anyRequest().authenticated()
             )
+            .oauth2Login(oauth2 ->
+                    oauth2.successHandler(successHandler)
+                            .failureHandler(null)
+            )
+            .logout(AbstractHttpConfigurer::disable)
             .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, e) -> {
                 // error message
                  e.printStackTrace();
