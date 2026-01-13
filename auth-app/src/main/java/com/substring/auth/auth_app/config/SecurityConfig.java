@@ -43,10 +43,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorizeHttpRequests ->
                     authorizeHttpRequests
-                            .requestMatchers("/api/v1/auth/register").permitAll()
-                            .requestMatchers("/api/v1/auth/login").permitAll()
-                            .requestMatchers("/api/v1/auth/refresh").permitAll()
-                            .requestMatchers("/api/v1/auth/logout").permitAll()
+                            .requestMatchers(AppConstant.AUTH_PUBLIC_URLS).permitAll()
                             .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 ->
@@ -92,6 +89,5 @@ public class SecurityConfig {
 //        UserDetails user2 = userBuilder.username("Ramu").password("abcd").roles("USER").build();
 //        UserDetails user3 = userBuilder.username("Raja").password("").roles("ADMIN").build();
 //        return new InMemoryUserDetailsManager(user1, user2, user3);
-//
 //    }
 }
