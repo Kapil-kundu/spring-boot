@@ -1,10 +1,78 @@
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Github, Mail, Lock } from "lucide-react";
-
+import { Spinner } from "@/components/ui/spinner";
+import type LoginData from "@/models/LoginData";
+import { loginUser } from "@/services/AuthService";
+import { set } from "date-fns";
+import { Github, Mail, Lock, Chrome, CheckCircle2Icon } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import toast from "react-hot-toast";
+import { Link, Navigate, useNavigate } from "react-router";
 export default function Login() {
+  const [loginData, setLoginData] = useState<LoginData> ({
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<any>(null);
+
+  const navigate = useNavigate();
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLoginData({
+      ...loginData,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const handleFormSubmit = async(event: FormEvent) => {
+    event.preventDefault();
+    
+
+    //validations
+    if(loginData.email.trim() === "") {
+      toast.error("Email is required");
+      return;
+    }
+    if(loginData.password.trim() === "") {
+      toast.error("Password is required");
+      return;
+    }
+
+    // console.log(event.target);
+    // console.log(loginData);
+    
+    //server call for login
+    try {
+      setLoading(true);
+      const userInfo = await loginUser(loginData);
+      console.log(userInfo);
+      toast.success("Login successful");
+      navigate("/dashboard");
+
+      // save the current user logged in information in local storage
+
+      
+    } catch (error:any) {
+      console.error("Login failed:", error);
+      setError(error);
+      toast.error("Login failed. Please check your credentials.");
+      if(error?.status === 400) {
+        setError(error)
+      } else {
+          setError(error)
+
+      } 
+    } finally {
+        setLoading(false);
+      }
+  };
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/40 to-background px-4">
       <Card className="w-full max-w-md border-border bg-card/80 backdrop-blur-xl shadow-xl">
@@ -17,7 +85,24 @@ export default function Login() {
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        {/* Error section*/}
+
+       {
+        error && (
+          <div className="mt-6">
+            <Alert variant={"destructive"}>
+              <CheckCircle2Icon />
+                <AlertTitle>{
+                  error?.response? error.response.data?.message: error.message
+                }</AlertTitle>
+              
+            </Alert>
+
+          </div>
+       )}
+
+
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* EMAIL */}
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
@@ -28,6 +113,9 @@ export default function Login() {
                 type="email"
                 placeholder="you@example.com"
                 className="pl-10"
+                name = "email"
+                value={loginData.email}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -42,12 +130,18 @@ export default function Login() {
                 type="password"
                 placeholder="••••••••"
                 className="pl-10"
+                name = "password"
+                value={loginData.password}
+                onChange={handleInputChange}
               />
             </div>
           </div>
 
           {/* LOGIN BUTTON */}
-          <Button className="w-full">Sign In</Button>
+          <Button disabled={loading} className="w-full cursor-pointer">
+            {loading ? <><Spinner />Please wait...</> : "Login"}
+           
+          </Button>
 
           {/* DIVIDER */}
           <div className="relative">
@@ -87,10 +181,11 @@ export default function Login() {
           <p className="text-center text-sm text-muted-foreground">
             Don’t have an account?{' '}
             <span className="text-primary cursor-pointer hover:underline">
-              Sign up
+                <Link to="/signup">Sign up</Link>
+        
             </span>
           </p>
-        </CardContent>
+        </form>
       </Card>
     </div>
   );

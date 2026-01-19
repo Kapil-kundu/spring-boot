@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Github, Mail, Lock, User } from "lucide-react";
 import React, { useState, type FormEvent } from "react";
 import toast from "react-hot-toast";
-import type RegisterData from "@/models/RegisterData"; 
-import { registerUser } from "@/services/AuthService";
+import type RegisterData from "../models/RegisterData";
+import { registerUser } from "../services/AuthService";
+import { Link, useNavigate } from "react-router";
 export default function Signup() {
 
   const [data, setData] = useState({
@@ -17,6 +18,9 @@ export default function Signup() {
 
   const [loading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+   
 
 
   //text input, email password , number, textarea
@@ -58,6 +62,12 @@ export default function Signup() {
       const result = await registerUser(data);
       console.log(result);
       toast.success("Registration successful! Please login.");
+      setData({
+        name: "",
+        email: "",
+        password: "",
+      }); 
+      navigate("/login");
     } catch (error: any) {
       console.error( error);
       toast.error("Error in registering the user");
@@ -170,7 +180,7 @@ export default function Signup() {
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <span className="text-primary cursor-pointer hover:underline">
-              Sign in
+                <Link to="/login">Sign in</Link>
             </span>
           </p>
         </form>
