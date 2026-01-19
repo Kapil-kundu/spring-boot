@@ -69,7 +69,15 @@ security:
 
 
 app:
+  cors:
+    front-end-url: http://localhost:5173
   auth:
     frontend:
       success-redirect: http://localhost:5173/auth/success
       failure-redirect: http://localhost:5173/auth/failure
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    # Optional: see exactly what the filters are doing to the request
+    org.springframework.web: DEBUG

@@ -3,8 +3,68 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Github, Mail, Lock, User } from "lucide-react";
-
+import React, { useState, type FormEvent } from "react";
+import toast from "react-hot-toast";
+import type RegisterData from "@/models/RegisterData"; 
+import { registerUser } from "@/services/AuthService";
 export default function Signup() {
+
+  const [data, setData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  }); 
+
+  const [loading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState(null);
+
+
+  //text input, email password , number, textarea
+  // this function handles input changes for all fields
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+    //console.log(event.target.name, event.target.value);
+    setData((value) => ({
+      ...value,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+
+  // handle form submission
+  const handleFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log(data);
+
+    // validations
+
+    if(data.name.trim() === "") {
+      toast.error("Name is required");
+      return;
+    }
+
+    if(data.email.trim() === "") {
+      toast.error("Email is required");
+      return;
+    }
+
+    if(data.password.trim() === "") {
+      toast.error("Password is required");
+      return;
+    }
+
+    //form submit for registration
+    try {
+      const result = await registerUser(data);
+      console.log(result);
+      toast.success("Registration successful! Please login.");
+    } catch (error: any) {
+      console.error( error);
+      toast.error("Error in registering the user");
+    }
+  };
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/40 to-background px-4">
       <Card className="w-full max-w-md border-border bg-card/80 backdrop-blur-xl shadow-xl">
@@ -17,7 +77,7 @@ export default function Signup() {
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* NAME */}
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
@@ -28,6 +88,9 @@ export default function Signup() {
                 type="text"
                 placeholder="John Doe"
                 className="pl-10"
+                name="name"
+                value={data.name}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -42,6 +105,9 @@ export default function Signup() {
                 type="email"
                 placeholder="you@example.com"
                 className="pl-10"
+                name="email"
+                value={data.email}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -56,6 +122,9 @@ export default function Signup() {
                 type="password"
                 placeholder="••••••••"
                 className="pl-10"
+                name="password"
+                value={data.password}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -104,7 +173,7 @@ export default function Signup() {
               Sign in
             </span>
           </p>
-        </CardContent>
+        </form>
       </Card>
     </div>
   );
