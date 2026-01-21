@@ -1,3 +1,4 @@
+import useAuth from "@/auth/store";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ export default function Login() {
   const [error, setError] = useState<any>(null);
 
   const navigate = useNavigate();
+  const login = useAuth((state )=> state.login);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({
@@ -49,8 +51,16 @@ export default function Login() {
     //server call for login
     try {
       setLoading(true);
-      const userInfo = await loginUser(loginData);
-      console.log(userInfo);
+      // const userInfo = await loginUser(loginData);
+
+
+      //login function : useAuth
+      
+      await login(loginData);
+
+      // console.log(userInfo);
+
+
       toast.success("Login successful");
       navigate("/dashboard");
 
