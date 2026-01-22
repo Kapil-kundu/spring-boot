@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "./button";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import useAuth from "@/auth/store";
 
 function Navbar() {
@@ -8,6 +8,7 @@ function Navbar() {
     const checkLogin = useAuth((state) => state.checkLogin);
     const user = useAuth((state) => state.user);
     const logout = useAuth(state => state.logout);
+    const navigate = useNavigate();
 
     return (
          <nav className="py-5 border dark:border-b border-gray-700 md:py-0 flex md:flex-row gap-4 md:gap-0 flex-col md:h-14 justify-around items-center ">
@@ -22,10 +23,11 @@ function Navbar() {
             <div className="flex gap-4 items-center">
                 {checkLogin() ? ( 
                     <>
-                        <NavLink to={"#!"}> {user?.name} </NavLink>
+                        <NavLink to={"/dashboard/profile"}> {user?.name} </NavLink>
                         
                         <Button onClick = {() => {
                              logout();
+                             navigate("/")
                             }}
                             size={"sm"} 
                             className="cursor-pointer" 
