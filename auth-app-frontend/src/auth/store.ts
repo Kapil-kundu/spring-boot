@@ -4,6 +4,7 @@ import type User from '@/models/User';
 import Login from '@/pages/Login';
 import { loginUser, logoutUser } from '@/services/AuthService';
 import { TruckElectric } from 'lucide-react';
+//import { aC } from 'node_modules/react-router/dist/development/router-5iOvts3c.d.mts';
 import {create} from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -23,6 +24,8 @@ type AuthState = {
     logout: (silent?: boolean) => void;
     checkLogin: () => boolean | undefined;
 
+    changeLocalLoginData: (accessToken: string, user: User, authStatus: boolean) => void;
+
 
 };
 
@@ -35,6 +38,16 @@ const useAuth = create<AuthState>()(
         user: null,
         authStatus: false,
         authLoading: false,
+
+
+        changeLocalLoginData: (accessToken, user, authStatus) => {
+            set({
+                accessToken,
+                user,
+                authStatus,
+            })
+        }
+        ,
         login: async (loginData) => {
             console.log("started login");
             set({ authLoading: true });
@@ -89,6 +102,8 @@ const useAuth = create<AuthState>()(
             }
             
         },
+
+        
     }),
     {name: LOCAL_KEY}
     )
