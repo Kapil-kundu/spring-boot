@@ -1,3 +1,4 @@
+import useAuth from '@/auth/store';
 import axios from 'axios';
 
 const apiClient = axios.create({
@@ -9,4 +10,15 @@ const apiClient = axios.create({
     timeout: 10000,
 });
 
+
+//every request
+apiClient.interceptors.request.use(config => {
+
+   const accessToken =  useAuth.getState().accessToken;
+   if(accessToken) {
+        config.headers.Authorization =`Bearer ${accessToken}`;
+   }
+
+    return config;
+});
 export default apiClient;

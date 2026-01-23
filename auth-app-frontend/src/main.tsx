@@ -11,7 +11,7 @@ import Userhome from './pages/users/Userhome.js';
 import RootLayout from './pages/RootLayout.tsx';
 import Userlayout from './pages/users/Userlayout.tsx';
 import Userprofile from './pages/users/Userprofile.tsx';
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
       <Route path='/' element={<RootLayout />}>
@@ -20,9 +20,10 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/signup" element={<Signup />}/>
           <Route path="/services" element={<Services />}/>
           <Route path="/about" element={<About />}/>
-          <Route path="/dashboard" element={<Userlayout />} />
-            <Route index element = {<Userhome /> } /> 
-            <Route path ="profile" element={<Userprofile />} />
+          <Route path="/dashboard" element={<Userlayout />} >
+              <Route index element = {<Userhome /> } /> 
+              <Route path ="profile" element={<Userprofile />} />
+          </Route>
       </Route>
     </Routes>
   </BrowserRouter>,

@@ -1,85 +1,135 @@
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, Calendar, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pencil, Save, X } from "lucide-react";
+import useAuth from "@/auth/store";
 import { motion } from "framer-motion";
-import useAuth from '@/auth/store';
-
+import type User from "@/models/User";
+import { NavLink } from "react-router";
 
 function Userprofile() {
 
-  const user = useAuth((state) => state.user);
-  
-     return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <motion.h1
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-semibold"
-      >
-        User Profile
-      </motion.h1>
+  // user from auth store (zustand / context)
+  const user = useAuth((state) => state.user) as User | null;
 
-      {/* Profile Header */}
-      <Card className="rounded-2xl shadow-sm">
-        <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-6">
-          <img
-            src={user?.image}
-            alt="Profile"
-            className="w-32 h-32 rounded-full border"
-          />
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<User | null>(null);
 
-          <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-xl font-bold flex items-center gap-2 justify-center sm:justify-start">
-              <User className="w-5 h-5" /> {user?.name}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1"></p>
-            <div className="mt-4 flex gap-3 justify-center sm:justify-start">
-              <Button size="sm">Edit Profile</Button>
-              <Button size="sm" variant="outline">Change Photo</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  useEffect(() => {
+    if (user) {
+      setFormData(user);
+    }
+  }, [user]);
 
-      {/* User Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-sm">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-lg font-semibold">Personal Information</h3>
-            <div className="flex items-center gap-3 text-sm">
-              <Mail className="w-4 h-4 text-muted-foreground" /> {user?.email}
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Phone className="w-4 h-4 text-muted-foreground" /> 
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-muted-foreground" /> 
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Calendar className="w-4 h-4 text-muted-foreground" /> 
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dummy Extra Info */}
-        <Card className="rounded-2xl shadow-sm">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-lg font-semibold">Account Details</h3>
-            <p className="text-sm text-muted-foreground">
-              This section contains dummy account-related information for UI
-              demonstration purposes.
-            </p>
-            <ul className="text-sm list-disc pl-4 text-muted-foreground">
-              <li>Email verified</li>
-              <li>Two-factor authentication disabled</li>
-              <li>Last login: 2 days ago</li>
-            </ul>
-          </CardContent>
-        </Card>
+  if (!user || !formData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Loading profile...
       </div>
+    );
+  }
+
+  const handleChange = (key: keyof User, value: any) => {
+    setFormData({ ...formData, [key]: value });
+  };
+
+  const handleSave = async () => {
+    // TODO: call update profile API here
+    // await updateProfile(formData)
+
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setFormData(user);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-muted flex justify-center p-6">
+      <Card className="w-full max-w-xl rounded-2xl shadow-md">
+        <CardHeader className="flex flex-row items-center gap-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={user.image} />
+            <AvatarFallback>{user.name?.charAt(0) ?? "U"}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <CardTitle className="text-2xl">My Profile</CardTitle>
+            <p className="text-sm text-muted-foreground">View and edit your personal information</p>
+          </div>
+          {!isEditing && (
+            <Button size="icon" variant="outline" onClick={() => setIsEditing(true)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+        </CardHeader>
+
+        <CardContent className="space-y-5">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input
+              value={formData.name ?? ""}
+              disabled={!isEditing}
+              onChange={(e) => handleChange("name", e.target.value)}
+            />
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input value={user.email} disabled />
+          </div>
+
+          {/* Provider */}
+          <div className="space-y-2">
+            <Label>Login Provider</Label>
+            <Input value={user.provider} disabled />
+          </div>
+
+          {/* Enabled */}
+          <div className="flex items-center justify-between">
+            <Label>Account Enabled</Label>
+            <Switch
+              checked={formData.enabled}
+              disabled={!isEditing}
+              onCheckedChange={(val) => handleChange("enabled", val)}
+            />
+          </div>
+
+          {/* Meta info */}
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>User ID: {user.id}</p>
+            <p>Created At: {user.createAt}</p>
+            <p>Last Updated: {user.updatedAt}</p>
+          </div>
+
+          {/* Actions */}
+          {isEditing && (
+            <div className="flex gap-3 pt-4">
+              <Button className="flex-1" onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" /> Save
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={handleCancel}>
+                <X className="h-4 w-4 mr-2" /> Cancel
+              </Button>
+            </div>
+          )}
+        </CardContent>
+        <div className =" flex justify-center p-4 pt-0">
+          <Button >
+            <NavLink className="flex items-center justify-center h-16" to="/dashboard">Save</NavLink>
+          </Button>
+        </div>
+      </Card>
     </div>
   );
+  
+    
 }
 
 export default Userprofile;
