@@ -2,17 +2,43 @@ package com.kapil.journal_app.service;
 
 import com.kapil.journal_app.Repository.JournalEntryRepo;
 import com.kapil.journal_app.entity.JournalEntry;
+import com.kapil.journal_app.entity.User;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class journalEntryService {
 
     @Autowired
     private JournalEntryRepo journalEntryRepo;
+
+    @Autowired
+    private UserService userService;
+
+    @Transactional // is annotation se agar is function me kahi par bhi koe exception aati h to exception se pehle save
+                    // ki gayi entry automatically rollback(delete) ho jayegi
+
+                //For Example : userService.save(journalEntry) wali line me exception aati h to
+            // automatically pehle wala pura code rollback ho jayega
+            //  (jo bhi data database mein save kiya h vo delete ho jayega uss specific entry ka)
+    public void saveEntry(JournalEntry journalEntry, String userName) {
+        try {
+            User user = userService.findByUserName(userName);
+            journalEntry.setDate(LocalDateTime.now());
+           JournalEntry saved = journalEntryRepo.save(journalEntry);
+            user.getJournalEntries().add(saved);
+            userService.saveEntry(user);
+        } catch(Exception e ) {
+            System.out.println(e);
+            throw new RuntimeException("An error occured while saving this entry " + e);
+        }
+    }
 
     public void saveEntry(JournalEntry journalEntry) {
         journalEntryRepo.save(journalEntry);
@@ -22,11 +48,14 @@ public class journalEntryService {
         return journalEntryRepo.findAll();
     }
 
-    public JournalEntry getById(ObjectId id) {
-        return  journalEntryRepo.findById(id).orElseThrow(() -> new RuntimeException("Journal Entry not found"));
+    public Optional<JournalEntry> getById(ObjectId id) {
+        return  journalEntryRepo.findById(id);
     }
 
-    public void DeleteEntry(ObjectId id) {
+    public void DeleteEntry(ObjectId id, String userName) {
+        User user = userService.findByUserName(userName);
+        user.getJournalEntries().removeIf(x -> x.getId().equals(id));
+        userService.saveEntry(user);
         journalEntryRepo.deleteById(id);
     }
 
