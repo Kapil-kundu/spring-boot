@@ -21,9 +21,16 @@ public class UserService {
 
     private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+ /*
+    If we use this function to save the user, user password is saved in database as user entered it
+     it will not be encoded
+     So, we create an another function(saveNewUser) which saves user password in encoded form in database
+
+*/
     public void saveEntry(User user) {
         userRepo.save(user);
     }
+
 
     public void saveNewUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));

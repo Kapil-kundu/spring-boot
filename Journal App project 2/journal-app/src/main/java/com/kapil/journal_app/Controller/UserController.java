@@ -1,6 +1,7 @@
 package com.kapil.journal_app.Controller;
 
 
+import com.kapil.journal_app.Repository.UserRepo;
 import com.kapil.journal_app.entity.User;
 import com.kapil.journal_app.service.UserService;
 import org.apache.coyote.Response;
@@ -9,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,15 +24,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public List<User> getAllUser() {
-        return userService.showEntries();
-    }
-
-    @PostMapping()
-    public void Crateuser(@RequestBody User newUser) {
-        userService.saveNewUser(newUser);
-    }
+    @Autowired
+    private UserRepo userRepo;
 
 
     @GetMapping("/{id}")
@@ -50,20 +46,23 @@ public class UserController {
     }
 
 
-    @PutMapping("{userName}")
-    public ResponseEntity<?> updateUser(@RequestBody User user, @PathVariable String userName) {
+    @PutMapping
+    public ResponseEntity<?> updateUser(@RequestBody User user) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+
         User userInDb = userService.findByUserName(userName);
-        if(userInDb != null) {
-            userInDb.setUserName(user.getUserName());
-            userInDb.setPassword(user.getPassword());
-            userService.saveEntry(userInDb);
-        }
+        userInDb.setUserName(user.getUserName());
+        userInDb.setPassword(user.getPassword());
+        userService.saveNewUser(userInDb);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping("/delete/{userName}")
-    public ResponseEntity<?> deleteUser(@PathVariable String userName) {
-        userService.DeleteEntry(userName);
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        userRepo.deleteByUserName(authentication.getName());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
     }
