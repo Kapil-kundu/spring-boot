@@ -24,7 +24,7 @@ public class JournalEntryControllerV2 {
     private UserService userService;
 
 
-    @PostMapping("{userName}")
+    @PostMapping("/{userName}")
     public ResponseEntity<JournalEntry> createEntry(@PathVariable String userName, @RequestBody JournalEntry entry) {
         try{
             JournalEntryService.saveEntry(entry, userName);
@@ -34,7 +34,7 @@ public class JournalEntryControllerV2 {
         }
     }
 
-    @GetMapping("{userName}")
+    @GetMapping("/{userName}")
     public ResponseEntity<?> getAllJournalEntriesOfUser(@PathVariable String userName) {
         User user = userService.findByUserName(userName);
         if(user != null) {

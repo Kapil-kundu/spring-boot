@@ -27,9 +27,10 @@ public class UserController {
     }
 
     @PostMapping()
-    public void user(@RequestBody User newUser) {
-        userService.saveEntry(newUser);
+    public void Crateuser(@RequestBody User newUser) {
+        userService.saveNewUser(newUser);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable String id) {
