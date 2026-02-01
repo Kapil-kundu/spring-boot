@@ -26,6 +26,7 @@ public class SpringSecurity {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/journal/**", "/user/**").authenticated()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
                     .anyRequest().permitAll()
             )
             .httpBasic(Customizer.withDefaults());
